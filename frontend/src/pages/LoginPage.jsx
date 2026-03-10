@@ -1,77 +1,97 @@
-
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Mail, Lock, Loader } from "lucide-react";
-import { Link } from "react-router-dom";
-import Input from "../components/Input";
-import { useAuthStore } from "../store/authStore";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import backgroundImage from '../assets/login-background.jpg';
 
 const LoginPage = () => {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [validationError, setValidationError] = useState('');
 
-	const { login, isLoading, error } = useAuthStore();
+  const { login, isLoading, error } = useAuthStore();
 
-	const handleLogin = async (e) => {
-		e.preventDefault();
-		await login(email, password);
-	};
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setValidationError('');
 
-	return (
-		<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.5 }}
-			className='max-w-sm w-full overflow-hidden border-2 border-neutral-300/50 rounded-xl shadow-lg bg-gray-900 text-gray-100'>
-			<div className='p-8'>
-				<h2 className='text-3xl font-bold mb-6 text-center bg-gradient-to-r from-cyan-400 to-cyan-500 text-transparent bg-clip-text'>
-					Welcome Back
-				</h2>
+    if (!email || !password) {
+      setValidationError('Please enter both email and password.');
+      return;
+    }
 
-				<form onSubmit={handleLogin}>
-					<Input
-						icon={Mail}
-						type='email'
-						placeholder='Email Address'
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-					/>
+    try {
+      await login(email, password);
+      console.log('Login attempt completed');
+    } catch (err) {
+      console.error('Login failed', err);
+    }
+  };
 
-					<Input
-						icon={Lock}
-						type='password'
-						placeholder='Password'
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-					/>
+  return (
+    <div className="flex min-h-screen flex-row-reverse w-full font-sans">
+      {/* 40% Form Section */}
+      <div className="flex-none w-[40%] min-w-[350px] flex flex-col justify-center items-center bg-white p-8 box-border border-r border-gray-200">
+        <div className="w-full max-w-[320px]">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
+          <p className="text-gray-500 mb-8 text-sm">Please enter your details to sign in.</p>
 
-					<div className='flex items-center mb-3'>
-						<Link to='/forgot-password' className='text-sm text-neutral-300 hover:underline'>
-							Forgot password?
-						</Link>
-					</div>
-					{error && <p className='text-red-500 font-semibold mb-2'>{error}</p>}
+          <form onSubmit={handleLogin} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="email" className="text-sm font-medium text-gray-700">Email address</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="p-3 rounded-md border border-gray-300 text-base outline-none transition-colors duration-200 w-full focus:border-indigo-500 box-border"
+                disabled={isLoading}
+              />
+            </div>
 
-					<motion.button
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
-						className='w-full py-3 px-4 bg-cyan-600/50 text-white font-bold rounded-lg shadow-lg hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200'
-						type='submit'
-						disabled={isLoading}
-					>
-						{isLoading ? <Loader className='w-6 h-6 animate-spin  mx-auto' /> : "Login"}
-					</motion.button>
-				</form>
-			</div>
-			<div className='px-8 py-4 flex justify-center'>
-				<p className='text-sm text-gray-400'>
-					Don't have an account?{" "}
-					<Link to='/signup' className='text-green-400 hover:underline'>
-						Sign up
-					</Link>
-				</p>
-			</div>
-		</motion.div>
-	);
+            <div className="flex flex-col gap-2">
+              <label htmlFor="password" className="text-sm font-medium text-gray-700">Password</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="p-3 rounded-md border border-gray-300 text-base outline-none transition-colors duration-200 w-full focus:border-indigo-500 box-border"
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Error Display */}
+            {(error || validationError) && (
+              <div className="text-red-500 text-sm -mt-2">
+                {validationError || error?.message || 'Failed to login'}
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              className={`bg-indigo-600 text-white p-3 rounded-md border-none text-base font-medium cursor-pointer mt-2 transition-colors duration-200 w-full hover:bg-indigo-700 ${isLoading ? 'opacity-70' : 'opacity-100'}`}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-gray-500">
+            Don't have an account? <Link to="/signup" className="text-indigo-600 no-underline font-medium">Sign up</Link>
+          </p>
+        </div>
+      </div>
+
+      {/* 70% Branding/Image Section */}
+      <div className="flex-1 --bg-slate-900 flex flex-col justify-center items-center p-12 text-slate-950" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="max-w-[600px] text-center">
+            <h1 className="text-6xl font-bold mb-4 m-0"><span className='font-normal tracking-tighter'>ಬೆಂಗಳೂರು</span> Cares</h1>
+        </div>
+      </div>
+    </div>
+  );
 };
+
 export default LoginPage;
